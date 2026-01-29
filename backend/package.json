@@ -7,7 +7,7 @@
   "scripts": {
     "server": "node server.js",
     "start": "node server.js",
-    "build": "echo 'No build step required for backend'"
+    "build": "echo \"No build step required for backend\""
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -15,7 +15,8 @@
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.22.0"
+    "mongoose": "^8.22.0",
+    "twilio": "^5.4.0"
   },
   "description": "",
   "keywords": [],
