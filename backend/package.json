@@ -9,6 +9,10 @@
     "start": "node server.js",
     "build": "echo \"No build step required for backend\""
   },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "packageManager": "npm@10",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
