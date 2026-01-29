@@ -1,36 +1,42 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import bodyParser from 'body-parser';
-import Twilio from 'twilio';
+import twilio from 'twilio';
+import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
 
 // --- LOAD ENV VARIABLES ---
-dotenv.config(); // Loads variables from .env
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // --- MIDDLEWARE ---
 app.use(cors());
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // --- MONGODB CONNECTION ---
-const MONGODB_URI =
-  process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI is missing');
+  process.exit(1);
+}
 
 mongoose
   .connect(MONGODB_URI)
   .then(() => console.log('✅ Nexverra Master DB: Linked'))
-  .catch(err => console.error('❌ DB Link Failure:', err));
+  .catch(err => {
+    console.error('❌ DB Link Failure:', err);
+    process.exit(1);
+  });
 
-// --- SCHEMAS ---
+// --- SCHEMA ---
 const MessageSchema = new mongoose.Schema(
   {
     senderName: String,
@@ -41,8 +47,12 @@ const MessageSchema = new mongoose.Schema(
     items: Array,
     body: String,
     timestamp: { type: Date, default: Date.now },
-    status: { type: String, enum: ['unread', 'read', 'resolved'], default: 'unread' },
-    userId: String,
+    status: {
+      type: String,
+      enum: ['unread', 'read', 'resolved'],
+      default: 'unread'
+    },
+    userId: String
   },
   { versionKey: false }
 );
@@ -50,24 +60,46 @@ const MessageSchema = new mongoose.Schema(
 const Message = mongoose.model('Message', MessageSchema);
 
 // --- TWILIO CONFIGURATION ---
-const TWILIO_SID = process.env.TWILIO_SID || 'AC3859504579fb387cd297618344333a8a';
-const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN || '8d44a22e3a15f0babd24c8c0fa4dcfa0';
-const TWILIO_SENDER = process.env.TWILIO_SENDER || '+16614618557';
-const ADMIN_PHONE = process.env.ADMIN_PHONE || '+919204096168';
+const {
+  TWILIO_SID,
+  TWILIO_AUTH_TOKEN,
+  TWILIO_SENDER,
+  ADMIN_PHONE
+} = process.env;
 
-const twilioClient = Twilio(TWILIO_SID, TWILIO_AUTH_TOKEN);
+let twilioClient = null;
+
+if (TWILIO_SID && TWILIO_AUTH_TOKEN) {
+  twilioClient = twilio(TWILIO_SID, TWILIO_AUTH_TOKEN);
+  console.log('✅ Twilio client initialized');
+} else {
+  console.warn('⚠️ Twilio credentials missing — SMS disabled');
+}
 
 // --- FUNCTION TO SEND SMS ---
 const dispatchTwilioSMS = async (payload) => {
-  const { senderName, senderEmail, senderPhone, subject, items, body: messageBody } = payload;
+  if (!twilioClient) {
+    return { success: false, error: 'Twilio not configured' };
+  }
 
-  const formattedItemsList = Array.isArray(items) && items.length > 0
-    ? items.map(item => item.title).join(', ')
-    : 'None';
+  const {
+    senderName,
+    senderEmail,
+    senderPhone,
+    subject,
+    items,
+    body: messageBody
+  } = payload;
 
-  const body = `📩 New Nexverra Order!
+  const formattedItemsList =
+    Array.isArray(items) && items.length
+      ? items.map(item => item.title).join(', ')
+      : 'None';
+
+  const smsBody = `📩 New Nexverra Order
 From: ${senderName}
-📧 ${senderEmail || 'N/A'} | 📞 ${senderPhone}
+📧 ${senderEmail || 'N/A'}
+📞 ${senderPhone || 'N/A'}
 Subject: ${subject}
 Items: ${formattedItemsList}
 Message: ${messageBody}`;
@@ -76,12 +108,13 @@ Message: ${messageBody}`;
     await twilioClient.messages.create({
       from: TWILIO_SENDER,
       to: ADMIN_PHONE,
-      body,
+      body: smsBody
     });
+
     console.log('✅ SMS DISPATCHED');
     return { success: true };
   } catch (err) {
-    console.error('❌ SMS FAILED:', err.message);
+    console.error('❌ SMS FAILED:', err);
     return { success: false, error: err.message };
   }
 };
@@ -97,7 +130,7 @@ app.post('/api/messages', async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Lead captured in Nexverra Database',
-      sms: smsStatus,
+      sms: smsStatus
     });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
@@ -113,15 +146,18 @@ app.get('/api/messages', async (req, res) => {
   }
 });
 
-// --- SERVE FRONTEND ---
-app.use(express.static(path.join(__dirname, 'dist')));
+// ===============================
+// ✅ SERVE FRONTEND FROM DIST
+// ===============================
+const distPath = path.join(__dirname, 'dist');
+app.use(express.static(distPath));
 
-// Serve index.html for React Router
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+// React Router safe fallback (Node 22)
+app.get(/^(?!\/api).*/, (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'));
 });
 
 // --- START SERVER ---
 app.listen(PORT, () => {
-  console.log(`🚀 Nexverra Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Nexverra running at http://localhost:${PORT}`);
 });
