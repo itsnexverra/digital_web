@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nexverra | Creative Digital Agency</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      html { background-color: #0f0f0f; }
+      body {
+        font-family: 'Outfit', sans-serif;
+        background-color: #0f0f0f;
+        color: #ffffff;
+        overflow-x: hidden;
+        zoom: 0.85;
+        -moz-transform: scale(0.85);
+        -moz-transform-origin: top center;
+      }
+      h1, h2, h3, h4, h5, h6, .font-display { font-family: 'Syne', sans-serif; }
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: #0f0f0f; }
+      ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #CCF381; }
+      .marquee-container { display: flex; overflow: hidden; user-select: none; gap: 2rem; }
+      .marquee-content { flex-shrink: 0; display: flex; justify-content: space-around; gap: 2rem; min-width: 100%; animation: scroll 20s linear infinite; }
+      @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(calc(-100% - 2rem)); } }
+      @keyframes blob {
+        0% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(100px, -150px) scale(1.3); }
+        66% { transform: translate(-80px, 80px) scale(0.8); }
+        100% { transform: translate(0px, 0px) scale(1); }
+      }
+      @keyframes float { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-20px) rotate(2deg); } }
+      .animate-blob { animation: blob 15s infinite alternate ease-in-out; }
+      .animate-float { animation: float 6s infinite ease-in-out; }
+      .animation-delay-2000 { animation-delay: 2s; }
+      .animation-delay-4000 { animation-delay: 4s; }
+    </style>
+
+  <link rel="stylesheet" href="/index.css">
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.3.1",
+        "react/": "https://esm.sh/react@18.3.1/",
+        "react-dom": "https://esm.sh/react-dom@18.3.1",
+        "react-dom/": "https://esm.sh/react-dom@18.3.1/",
+        "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+        "react-router-dom": "https://esm.sh/react-router-dom@6.22.3?deps=react@18.3.1,react-dom@18.3.1",
+        "framer-motion": "https://esm.sh/framer-motion@10.16.16?deps=react@18.3.1,react-dom@18.3.1",
+        "lucide-react": "https://esm.sh/lucide-react@0.344.0?deps=react@18.3.1"
+      }
+    }
+    </script>
+  <script type="module" crossorigin src="/assets/index-lBqPmqNg.js"></script>
+</head>
+  <body>
+    <div id="root"></div>
+</body>
+</html>
